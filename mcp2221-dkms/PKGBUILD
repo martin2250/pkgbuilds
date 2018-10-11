@@ -1,0 +1,53 @@
+# Maintainer: martin2250
+_pkgname="mcp2221"
+pkgname="mcp2221-dkms"
+pkgdesc="Microchip MCP2221 driver package as DKMS"
+pkgver=0.1.0
+pkgrel=0
+arch=("any")
+url="https://www.microchip.com/wwwproducts/en/MCP2221"
+license=("custom")
+depends=("dkms")
+makedepends=('linux-headers')
+provides=('mcp2221-dkms')
+install="mcp2221-dkms.install"
+_tarbase="mcp2221_0_1"
+source=("http://ww1.microchip.com/downloads/en/DeviceDoc/${_tarbase}.tar.gz"
+        "LICENSE"
+        "99-mcp2221.rules"
+        "mcp2221-dkms.install")
+sha256sums=('f1dda9b6e106214c9f1dc28859fa7f61f8d4b7e1a171dea8c9323eeb236c0586'
+            'SKIP'
+            'SKIP'
+            'SKIP')
+
+build() {
+  cd "$srcdir"
+
+  echo "PACKAGE_NAME=\"$_pkgname\"" > dkms.conf
+  echo "PACKAGE_VERSION=\"$pkgver\"" >> dkms.conf
+  cat >> dkms.conf << EOL
+AUTOINSTALL="yes"
+CHECK_MODULE_VERSION="no"
+MAKE="make modules"
+CLEAN="make clean"
+BUILT_MODULE_NAME[0]="i2c-mcp2221"
+DEST_MODULE_LOCATION[0]="/extramodules"
+EOL
+
+  sed -i -e 's/\^sysfs/sysfs/g' "$srcdir/$_tarbase/driver_load.sh"
+}
+
+package() {
+  install -Dm 0644 "LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+  install -Dm 0644 "dkms.conf" "$pkgdir/usr/src/$_pkgname-$pkgver/dkms.conf"
+  install -Dm 0644 "99-mcp2221.rules" "$pkgdir/etc/udev/rules.d/99-mcp2221.rules"
+
+  cd "$srcdir/$_tarbase"
+  install -Dm 0644 "Makefile" "$pkgdir/usr/src/$_pkgname-$pkgver/Makefile"
+  install -Dm 0644 "i2c-mcp2221.c" "$pkgdir/usr/src/$_pkgname-$pkgver/i2c-mcp2221.c"
+  install -Dm 0644 "ReadMe" "$pkgdir/usr/src/$_pkgname-$pkgver/ReadMe"
+  install -Dm 0744 "driver_load.sh" "$pkgdir/usr/lib/$pkgname/driver_load.sh"
+
+  #cp -a * "$pkgdir/usr/src/$_pkgname-$pkgver"
+}
