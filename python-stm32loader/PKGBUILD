@@ -1,0 +1,24 @@
+# Maintainer: Nobody
+_name=stm32loader
+pkgname=python-stm32loader
+pkgver=0.5.1
+pkgrel=1
+pkgdesc="Flash firmware to STM32 microcontrollers using Python."
+arch=("any")
+url="https://pypi.python.org/pypi/$_name"
+license=("GPLv3")
+depends=("python")
+makedepends=("python-setuptools")
+conflicts=("${pkgname}" "${pkgname}-git")
+source=("https://files.pythonhosted.org/packages/db/96/c025de445cdd15d43e7d3da2177bf9193e687275d81e2910a99c5d59cfa6/stm32loader-0.5.1.tar.gz")
+sha256sums=('2f7b852d985230182e292730a17129c792f41dd487cfc70d9e7bc74cfbc76504')
+
+build() {
+  cd "${srcdir}/${_name}-${pkgver}"
+  python setup.py build
+}
+
+package() {
+  cd "${srcdir}/${_name}-${pkgver}"
+  python setup.py install --root="${pkgdir}/" --optimize=1 || return 1
+}
